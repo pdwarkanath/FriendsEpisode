@@ -13,8 +13,21 @@ def getElems(res):
 	elems = scriptsPage.select('li')
 	return elems
 
-
-
+def getFileName(elem):
+	episodeName = elem.getText()
+	colonIndex = episodeName.index(":")
+	
+	seasonEpisodeNumber = episodeName[len("Episode "):colonIndex].strip()
+	try:
+		if(len(seasonEpisodeNumber)==3):
+			seasonNumber = convertTo2Digit(int(seasonEpisodeNumber[0]))
+		else:
+			seasonNumber = int(seasonEpisodeNumber[0:2])
+		episodeNumber = seasonEpisodeNumber[-2:]
+	except ValueError:
+		return
+	filename = 'S'+str(seasonNumber)+'E'+str(episodeNumber)+'.txt'
+	return filename
 
 def getEpisodeLink(elem):
 	linkRegex = re.compile(r'(href=\".*\")>')
@@ -42,21 +55,6 @@ def writeEpisodeScript(episodeScript, filename):
 	return
 
 
-def getFileName(elem):
-	episodeName = elem.getText()
-	colonIndex = episodeName.index(":")
-	
-	seasonEpisodeNumber = episodeName[len("Episode "):colonIndex].strip()
-	try:
-		if(len(seasonEpisodeNumber)==3):
-			seasonNumber = convertTo2Digit(int(seasonEpisodeNumber[0]))
-		else:
-			seasonNumber = int(seasonEpisodeNumber[0:2])
-		episodeNumber = seasonEpisodeNumber[-2:]
-	except ValueError:
-		return
-	filename = 'S'+str(seasonNumber)+'E'+str(episodeNumber)+'.txt'
-	return filename
 
 res = requests.get(PARENT_LINK+'scripts.shtml')
 elems = getElems(res)

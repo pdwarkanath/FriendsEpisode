@@ -13,9 +13,11 @@ allFilesInDirString = ' '.join(allFilesInDir)
 
 numberOfSeasons = 10
 
-characters = ["Joey", "Ross", "Chandler", "Rachel", "Monica", "Phoebe"]
+characters = ['Chandler', 'Joey', 'Monica', 'Phoebe','Rachel', 'Ross']
 
 numberOfCharacters = len(characters)
+
+FINAL_FILE = 'friendsMentions.csv'
 
 # Convert episode/season number to 2 digit number
 
@@ -55,17 +57,17 @@ def removeBracketText(text):
 # Define similar words regex for all characters
 
 def similarWords(characterName):
-	if characterName == "Monica":
+	if characterName == 'Monica':
 		similarWordsRegex = re.compile(r'(Mon(ica)?)')
-	elif characterName == "Phoebe":
+	elif characterName == 'Phoebe':
 		similarWordsRegex = re.compile(r'(Ph(o|e)eb(e|s))')
-	elif characterName == "Joey":
+	elif characterName == 'Joey':
 		similarWordsRegex = re.compile(r'(Jo(e(y)?)|Joseph)')
-	elif characterName == "Ross":
+	elif characterName == 'Ross':
 		similarWordsRegex = re.compile(r'(Ross)')
-	elif characterName == "Rachel":
+	elif characterName == 'Rachel':
 		similarWordsRegex = re.compile(r'(Rach(el)?)')
-	elif characterName == "Chandler":
+	elif characterName == 'Chandler':
 		similarWordsRegex = re.compile(r'(Chandler)')
 	return(similarWordsRegex)
 
@@ -82,29 +84,30 @@ def getCount(mentionedName, lines):
 	count = 0
 	similarWordsRegex = similarWords(mentionedName)
 	for line in lines:
+		line = removeBracketText(line)
 		count += len(similarWordsRegex.findall(line))
 	return(count)
 
-# Get total count of mentions of one character by another
+# Get number of mentions of one character by another in a season
 
-def getAllMentions(speakerName, mentionedName):
-	mentions = []
-	for i in range(numberOfSeasons):
-		text = readScripts(i+1)
-		text = removeBracketText(text)
-		lines = getLines(speakerName, text)
-		mentions.append(getCount(mentionedName, lines))
+def getMentions(speakerName, mentionedName, seasonNumber):
+	mentions = 0
+	text = readScripts(seasonNumber)
+	lines = getLines(speakerName, text)
+	mentions += getCount(mentionedName, lines)
 	return(mentions)
 
-for speakerName in characters:
-	for mentionedName in characters:
-		if speakerName == mentionedName:
-			continue
-		else:
-			print("{} mentions {}'s name by season: ".format(speakerName, mentionedName) + str(getAllMentions(speakerName, mentionedName)))
+f = open(FINAL_FILE, 'w+')
+f.write('seasonNumber,speakerName,mentionedName,mentions\n')
+for seasonNumber in range(numberOfSeasons):
+	for speakerName in characters:
+		for mentionedName in characters:
+			if speakerName == mentionedName:
+				continue
+			else:
+				f.write('{},{},{},{}\n'.format(str(seasonNumber+1),speakerName, mentionedName, str(getMentions(speakerName, mentionedName, seasonNumber+1))))
 
 
-
-
+f.close()
 
 

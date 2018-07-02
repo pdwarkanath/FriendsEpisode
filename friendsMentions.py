@@ -80,12 +80,11 @@ def getLines(characterName, text):
 
 # Get count of mentions of a character from lines
 
-def getCount(mentionedName, lines):
+def getCount(mentionedName, line):
 	count = 0
 	similarWordsRegex = similarWords(mentionedName)
-	for line in lines:
-		line = removeBracketText(line)
-		count += len(similarWordsRegex.findall(line))
+	line = removeBracketText(line)
+	count += len(similarWordsRegex.findall(line))
 	return(count)
 
 # Get number of mentions of one character by another in a season
@@ -94,7 +93,8 @@ def getMentions(speakerName, mentionedName, seasonNumber):
 	mentions = 0
 	text = readScripts(seasonNumber)
 	lines = getLines(speakerName, text)
-	mentions += getCount(mentionedName, lines)
+	for line in lines:
+		mentions += getCount(mentionedName, line)
 	return(mentions)
 
 f = open(FINAL_FILE, 'w+')

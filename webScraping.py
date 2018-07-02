@@ -45,11 +45,11 @@ def getEpisodeScript(episodeLink):
 
 def writeEpisodeScript(episodeScript, filename):
 	f = open(filename, "w+")
-	for j in range(len(episodeScript)):
+	for line in episodeScript:
 		try:
-			f.write(episodeScript[j].getText()+'\n')
+			f.write(line.getText()+'\n')
 		except UnicodeEncodeError:
-			x = unicodedata.normalize('NFKD', episodeScript[j].getText()+'\n').encode('ascii','ignore')
+			x = unicodedata.normalize('NFKD', line.getText()+'\n').encode('ascii','ignore')
 			f.write(x.decode("utf-8").strip())
 	f.close()
 	return
@@ -59,9 +59,9 @@ def writeEpisodeScript(episodeScript, filename):
 res = requests.get(PARENT_LINK+'scripts.shtml')
 elems = getElems(res)
 
-for i in range(len(elems)):
-	filename = getFileName(elems[i])
-	episodeLink = getEpisodeLink(elems[i])
+for elem in elems:
+	filename = getFileName(elem)
+	episodeLink = getEpisodeLink(elem)
 	episodeScript = getEpisodeScript(episodeLink)
 	
 	try:

@@ -2,16 +2,17 @@ import requests, bs4
 import re
 import unicodedata
 
-
 PARENT_LINK ='http://www.livesinabox.com/friends/'
+
 
 def convertTo2Digit(n):
 	return "{0:0=2d}".format(n)
 
 def getElems(res):
-	scriptsPage = bs4.BeautifulSoup(res.text)
+	scriptsPage = bs4.BeautifulSoup(res.text, 'lxml')
 	elems = scriptsPage.select('li')
 	return elems
+
 
 def getFileName(elem):
 	episodeName = elem.getText()
@@ -29,6 +30,7 @@ def getFileName(elem):
 	filename = 'S'+str(seasonNumber)+'E'+str(episodeNumber)+'.txt'
 	return filename
 
+
 def getEpisodeLink(elem):
 	linkRegex = re.compile(r'(href=\".*\")>')
 	m = linkRegex.search(str(elem))
@@ -38,16 +40,19 @@ def getEpisodeLink(elem):
 
 def getEpisodeScript(episodeLink):
 	episodePage = requests.get(episodeLink)
-	episodeSoup = bs4.BeautifulSoup(episodePage.text)
-	episodeScript = episodeSoup.select('p')
+	episodeSoup = bs4.BeautifulSoup(episodePage.text, 'lxml')
+	episodeScript = episodeSoup.find_all('p')
+
 	return episodeScript
 
-
-def writeEpisodeScript(episodeScript, filename):
-	f = open(filename, "w+")
+final_file = 'texts.txt'
+def writeEpisodeScript(episodeScript, final_file):
+	f = open(final_file, 'a+')
 	for line in episodeScript:
 		try:
-			f.write(line.getText()+'\n')
+			pattern = re.compile(r'Written by\: .*|\{.*|Transcribed by\: .*')
+			if not(bool(pattern.match(line.getText()))):
+				f.write(line.getText().replace('\n',' ')+'\n')
 		except UnicodeEncodeError:
 			x = unicodedata.normalize('NFKD', line.getText()+'\n').encode('ascii','ignore')
 			f.write(x.decode("utf-8").strip())
@@ -56,18 +61,34 @@ def writeEpisodeScript(episodeScript, filename):
 
 
 
+
+
+
 res = requests.get(PARENT_LINK+'scripts.shtml')
 elems = getElems(res)
 
 for elem in elems:
 	filename = getFileName(elem)
+	cache = filename
+	
 	episodeLink = getEpisodeLink(elem)
 	episodeScript = getEpisodeScript(episodeLink)
-	
+		
 	try:
-		writeEpisodeScript(episodeScript, filename)  # There is an episode without any number after season 7 episode 23. Hence this error-handling
+		writeEpisodeScript(episodeScript, final_file)  # There is an episode without any number after season 7 episode 23. Hence this error-handling
+		print('{} Downloaded!'.format(filename[0:6]))
 	except TypeError:
 		continue
-	print('{} Downloaded!'.format(filename[0:6]))
+		
+"""
 
 
+filename = getFileName(elems[94])
+episodeLink = getEpisodeLink(elems[94])
+episodeScript = getEpisodeScript(episodeLink)
+
+writeEpisodeScript(episodeScript, filename)  # There is an episode without any number after season 7 episode 23. Hence this error-handling
+print('{} Downloaded!'.format(filename[0:6]))
+
+
+"""
